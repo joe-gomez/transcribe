@@ -208,7 +208,7 @@ st.markdown(f"""
 }}
 </style>
 <div class="transcript-box-highlight">
-{highlight_phrases_by_category(transcription)}
+{highlight_phrases_by_category(Transcription)}
 </div>
 """, unsafe_allow_html=True)
 
