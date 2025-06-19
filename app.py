@@ -167,7 +167,8 @@ def highlight_individualising_language(text):
         "let's try this instead", "okay", "we're messing up real good", "what are we doing",
         "singing a song about our impending doom", "egging them on", "I know",
         "there is no planet B", "if we're looking after nature", "she'll be looking after me"
-    ]
+  
+        ]
 
 
     # Escape HTML to prevent injection
