@@ -2,23 +2,17 @@ import whisper
 import tempfile
 import os
 
-# Optionally use a smaller model for speed: "base", "small"
-model = whisper.load_model("small")
+model = whisper.load_model("small")  # or "base"
 
-def transcribe(file, language):
-    # Detect extension from uploaded file if possible, fallback to .mp3
-    ext = ".mp3"
-    if hasattr(file, "name") and "." in file.name:
-        ext = os.path.splitext(file.name)[1].lower()
-
+def transcribe(file_bytes, language, original_name="audio.mp3"):
+    ext = os.path.splitext(original_name)[1].lower() if "." in original_name else ".mp3"
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_audio:
-        temp_audio.write(file.read())
+        temp_audio.write(file_bytes)
         temp_audio_path = temp_audio.name
 
     options = {}
-    # Map language to ISO code if needed, or ensure UI provides correct codes
     if language and language != "Auto":
-        options["language"] = language  # Ensure this matches Whisper's expected codes
+        options["language"] = language  # Should be ISO code, e.g. "en"
 
     try:
         result = model.transcribe(temp_audio_path, **options)
