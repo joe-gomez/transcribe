@@ -52,7 +52,25 @@ def highlight_individualising_language(text):
         "you decide", "you choose", "it's your call",
         "you must act", "you should act", "you have to act", "you need to act",
         "you can help", "you can change", "you must change", "you should change",
-        "it starts with you", "lead by example"
+        "it starts with you", "lead by example", "manage your impact", "control your behavior", "watch your habits", "reduce your footprint",
+        "live responsibly", "live sustainably", "choose better", "choose wisely", "choose green",
+        "think before you", "be mindful of your", "change your lifestyle", "alter your behavior",
+        "cut your emissions", "cut your waste", "minimize your impact", "track your carbon",
+        "monitor your consumption", "limit your usage", "reconsider your habits",
+        "hold yourself to account", "be part of the solution", "change starts with you",
+        "start with yourself", "fix your mindset", "make better choices", "it's on you",
+        "every decision you make", "be aware of your", "you're the problem", "be the change",
+        "it's your problem", "solve it yourself", "self-improvement", "responsible living",
+        "personal action", "personal impact", "your sustainability journey",
+        "greener choices", "make the right choice", "shift your mindset", "your ethical duty",
+        "align your values", "own your journey", "commit to change", "your moral duty",
+        "choose to act", "make a conscious choice", "develop good habits",
+        "clean up your act", "consider your actions", "change your ways", "learn to be better",
+        "develop sustainable habits", "improve your footprint", "be responsible",
+        "align your behavior", "correct your path", "take initiative", "be more aware",
+        "self-discipline", "cultivate awareness", "you are part of the problem", "you are the solution",
+        "your decisions matter", "your lifestyle choices", "reflect on your impact",
+        "you control the future", "your behaviour counts", "lead the change", "take initiative"
     ]
 
     # Escape HTML to prevent injection
