@@ -1,12 +1,13 @@
 import streamlit as st
+from transcribe import transcribe
 import re
 import html
-from transcribe import transcribe
-from highlight import highlight_phrases_by_category  # Uses phrase_categories from phrases/phrase_categories.py
+from rapidfuzz import fuzz, process
 from phrases.phrase_categories import phrase_categories
 
 st.set_page_config(page_title="Audio/Video Transcriber", layout="centered")
-st.title("Whisper Transcription & Phrase Highlighter")
+
+st.title("Whisper Transcription")
 
 uploaded_file = st.file_uploader(
     "Upload an audio or video file",
@@ -21,14 +22,89 @@ selected_language = st.selectbox(
     "Select original language (or choose Auto to detect):", language_options
 )
 
-fuzzy_threshold = st.slider(
-    "Fuzzy match threshold (lower = more lenient, higher = more strict)",
-    min_value=50,
-    max_value=100,
-    value=80,
-    step=1,
-    help="Lower values will match phrases more loosely; higher values require closer matches."
-)
+def get_flexible_pattern(phrase):
+    """
+    Returns a regex pattern for a phrase that allows for leading/trailing punctuation and whitespace.
+    """
+    # Escape regex metacharacters in phrase, but allow spaces.
+    escaped = re.escape(phrase)
+    # Replace escaped spaces with \s+ to allow flexible whitespace between words
+    flexible = re.sub(r'\\ ', r'\\s+', escaped)
+    # Allow leading/trailing punctuation or start/end of string
+    # (?<!\w) at the start means: not preceded by a word character
+    # (?!\w) at the end means: not followed by a word character
+    return r'(?<!\w)'+flexible+r'(?!\w)'
+
+def highlight_phrases_by_category(text, fuzzy_threshold=90):
+    """
+    Highlights phrases from categories in the text using flexible matching and fuzzy matching for near-matches.
+    """
+    # Escape HTML to prevent injection
+    safe_text = html.escape(text)
+
+    # Build a list of (category, phrase, color) for all phrases
+    phrase_tuples = []
+    for cat, data in phrase_categories.items():
+        color = data["color"]
+        for phrase in data["phrases"]:
+            phrase_tuples.append((cat, phrase, color))
+
+    # Sort by phrase length descending (to match longest possible first)
+    phrase_tuples.sort(key=lambda x: len(x[1]), reverse=True)
+
+    # Track which character indices have been highlighted to prevent overlaps
+    highlighted = [False] * len(safe_text)
+    spans = []
+
+    # Standardize text for fuzzy search (lowercase, normalize whitespace)
+    standardized_text = re.sub(r'\s+', ' ', safe_text.lower())
+
+    for cat, phrase, color in phrase_tuples:
+        # Flexible regex pattern for the phrase
+        pattern = get_flexible_pattern(phrase)
+        for match in re.finditer(pattern, safe_text, flags=re.IGNORECASE):
+            start, end = match.start(), match.end()
+            # Only highlight if this region isn't already highlighted
+            if not any(highlighted[start:end]):
+                spans.append((start, end, color))
+                for i in range(start, end):
+                    highlighted[i] = True
+
+        # Fuzzy matching: look for approximate phrase matches in sliding windows
+        words = phrase.split()
+        num_words = len(words)
+        if num_words < 2:
+            continue  # Skip fuzzy for single-word phrases (too many false positives)
+
+        # Slide window over the text for fuzzy matching
+        tokens = standardized_text.split()
+        for i in range(len(tokens) - num_words + 1):
+            window = ' '.join(tokens[i:i+num_words])
+            score = fuzz.ratio(window, phrase.lower())
+            if score >= fuzzy_threshold:
+                # Find this window in the original safe_text (best effort)
+                raw_window = ' '.join(tokens[i:i+num_words])
+                match_iter = re.finditer(re.escape(raw_window), safe_text, re.IGNORECASE)
+                for m in match_iter:
+                    start, end = m.start(), m.end()
+                    if not any(highlighted[start:end]):
+                        spans.append((start, end, color))
+                        for j in range(start, end):
+                            highlighted[j] = True
+                        break  # Only highlight the first occurrence
+
+    # Merge and sort spans, and build highlighted HTML
+    spans.sort()
+    result = []
+    last_idx = 0
+    for start, end, color in spans:
+        if last_idx < start:
+            result.append(safe_text[last_idx:start])
+        phrase_html = f'<span style="background-color: {color}; font-weight: bold;">{safe_text[start:end]}</span>'
+        result.append(phrase_html)
+        last_idx = end
+    result.append(safe_text[last_idx:])
+    return ''.join(result)
 
 # Build color key HTML for categories (always shown)
 color_key_html = '<div style="margin-bottom: 1em; font-family: monospace;">'
@@ -61,7 +137,7 @@ if uploaded_file is not None:
         }}
         </style>
         <div class="transcript-box">
-        {html.escape(transcription)}
+        {transcription}
         </div>
         """, unsafe_allow_html=True)
 
@@ -79,7 +155,7 @@ if uploaded_file is not None:
         }}
         </style>
         <div class="transcript-box-highlight">
-        {highlight_phrases_by_category(transcription, fuzzy_threshold=fuzzy_threshold)}
+        {highlight_phrases_by_category(transcription)}
         </div>
         """, unsafe_allow_html=True)
 
