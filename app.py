@@ -16,9 +16,24 @@ language_options = [
     "Auto", "English", "Spanish", "French", "German", "Hindi", "Chinese",
     "Japanese", "Korean", "Arabic", "Russian", "Portuguese"
 ]
+language_code_map = {
+    "Auto": None,
+    "English": "en",
+    "Spanish": "es",
+    "French": "fr",
+    "German": "de",
+    "Hindi": "hi",
+    "Chinese": "zh",
+    "Japanese": "ja",
+    "Korean": "ko",
+    "Arabic": "ar",
+    "Russian": "ru",
+    "Portuguese": "pt",
+}
 selected_language = st.selectbox(
     "Select original language (or choose Auto to detect):", language_options
 )
+whisper_language = language_code_map[selected_language]
 
 fuzzy_threshold = st.slider(
     "Fuzzy match threshold (lower = more lenient, higher = more strict)",
@@ -39,13 +54,18 @@ for cat, data in phrase_categories.items():
 color_key_html += '</div>'
 st.markdown(color_key_html, unsafe_allow_html=True)
 
+# --- Clear Button for session state ---
+if st.button("Clear All / Reset"):
+    st.session_state.clear()
+    st.experimental_rerun()
+
 # --- Caching transcript ---
 @st.cache_data(show_spinner="Transcribing... this may take a few seconds depending on the file size")
 def get_transcription(file_bytes, language, file_name):
     import io
     file_obj = io.BytesIO(file_bytes)
     file_obj.name = file_name
-    return transcribe(file_obj, language)
+    return transcribe(file_bytes, language, file_name)
 
 if uploaded_file is not None:
     # Read file ONCE and store bytes and name
@@ -54,19 +74,23 @@ if uploaded_file is not None:
 
     # Only re-transcribe if file or language changes
     if st.button("Transcribe"):
-        with st.spinner("Transcribing... this may take a few seconds depending on the file size"):
-            transcription = get_transcription(file_bytes, selected_language, file_name)
-            st.session_state["transcription"] = transcription
-            st.session_state["transcription_file_hash"] = hash(file_bytes)
-            st.session_state["transcription_language"] = selected_language
-            st.session_state["transcription_file_name"] = file_name
-        st.success("Transcription complete!")
+        try:
+            with st.spinner("Transcribing... this may take a few seconds depending on the file size"):
+                transcription = get_transcription(file_bytes, whisper_language, file_name)
+                st.session_state["transcription"] = transcription
+                st.session_state["transcription_file_hash"] = hash(file_bytes)
+                st.session_state["transcription_language"] = whisper_language
+                st.session_state["transcription_file_name"] = file_name
+            st.success("Transcription complete!")
+        except Exception as e:
+            st.error(f"Transcription failed: {e}")
+            transcription = None
 
     # Display transcript if it exists in session (for re-highlighting)
     elif (
         "transcription" in st.session_state and
         st.session_state.get("transcription_file_hash") == hash(file_bytes) and
-        st.session_state.get("transcription_language") == selected_language and
+        st.session_state.get("transcription_language") == whisper_language and
         st.session_state.get("transcription_file_name") == file_name
     ):
         transcription = st.session_state["transcription"]
@@ -75,7 +99,15 @@ if uploaded_file is not None:
         transcription = None
 
     if transcription:
-        st.audio(file_bytes, format="audio/mp3")
+        # Smart audio format inference for playback
+        audio_ext = file_name.split(".")[-1].lower()
+        # m4a is actually played as mp4 by Streamlit
+        audio_format = (
+            f"audio/mp4" if audio_ext == "m4a"
+            else f"audio/{audio_ext}" if audio_ext in ["mp3", "wav", "ogg", "webm"]
+            else "audio/mp3"
+        )
+        st.audio(file_bytes, format=audio_format)
 
         # Original transcript display
         st.markdown("### 📝 Transcription:")
@@ -97,21 +129,25 @@ if uploaded_file is not None:
 
         # Highlighted transcript display
         st.markdown("### 🖍️ Transcription with Categorized Highlights:")
-        st.markdown(f"""
-        <style>
-        .transcript-box-highlight {{
-            padding: 1em;
-            border-radius: 8px;
-            height: 300px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            font-family: monospace;
-        }}
-        </style>
-        <div class="transcript-box-highlight">
-        {highlight_phrases_by_category(transcription, fuzzy_threshold=fuzzy_threshold)}
-        </div>
-        """, unsafe_allow_html=True)
+        try:
+            highlighted_html = highlight_phrases_by_category(transcription, fuzzy_threshold=fuzzy_threshold)
+            st.markdown(f"""
+            <style>
+            .transcript-box-highlight {{
+                padding: 1em;
+                border-radius: 8px;
+                height: 300px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                font-family: monospace;
+            }}
+            </style>
+            <div class="transcript-box-highlight">
+            {highlighted_html}
+            </div>
+            """, unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Highlighting failed: {e}")
 
         st.download_button(
             label="Download as .txt",
@@ -119,3 +155,7 @@ if uploaded_file is not None:
             file_name="transcription.txt",
             mime="text/plain"
         )
+    else:
+        st.info("Upload a file, select a language, and click Transcribe to begin.")
+else:
+    st.info("Please upload an audio or video file to get started.")
