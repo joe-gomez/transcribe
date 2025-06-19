@@ -62,9 +62,6 @@ if st.button("Clear All / Reset"):
 # --- Caching transcript ---
 @st.cache_data(show_spinner="Transcribing... this may take a few seconds depending on the file size")
 def get_transcription(file_bytes, language, file_name):
-    import io
-    file_obj = io.BytesIO(file_bytes)
-    file_obj.name = file_name
     return transcribe(file_bytes, language, file_name)
 
 if uploaded_file is not None:
@@ -101,7 +98,6 @@ if uploaded_file is not None:
     if transcription:
         # Smart audio format inference for playback
         audio_ext = file_name.split(".")[-1].lower()
-        # m4a is actually played as mp4 by Streamlit
         audio_format = (
             f"audio/mp4" if audio_ext == "m4a"
             else f"audio/{audio_ext}" if audio_ext in ["mp3", "wav", "ogg", "webm"]
