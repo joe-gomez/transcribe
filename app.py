@@ -191,30 +191,32 @@ for cat, data in phrase_categories.items():
     color_key_html += f'<span style="background-color: {color}; padding: 0.2em 0.6em; margin-right: 1em; border-radius: 4px;">{label}</span>'
 color_key_html += '</div>'
 
-# Display color key before highlighted transcript
-st.markdown(color_key_html, unsafe_allow_html=True)
+if uploaded_file is not None and 'transcription' in locals():
+    # Display color key before highlighted transcript
+    st.markdown(color_key_html, unsafe_allow_html=True)
 
-# Highlighted transcript display with multi-category colors
-st.markdown("### 🖍️ Transcription with Categorized Highlights:")
-st.markdown(f"""
-<style>
-.transcript-box-highlight {{
-    padding: 1em;
-    border-radius: 8px;
-    height: 300px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    font-family: monospace;
-}}
-</style>
-<div class="transcript-box-highlight">
-{highlight_phrases_by_category(Transcription)}
-</div>
-""", unsafe_allow_html=True)
+    # Highlighted transcript display with multi-category colors
+    st.markdown("### 🖍️ Transcription with Categorized Highlights:")
+    st.markdown(f"""
+    <style>
+    .transcript-box-highlight {{
+        padding: 1em;
+        border-radius: 8px;
+        height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        font-family: monospace;
+    }}
+    </style>
+    <div class="transcript-box-highlight">
+    {highlight_phrases_by_category(transcription)}
+    </div>
+    """, unsafe_allow_html=True)
 
-st.download_button(
-    label="Download as .txt",
-    data=transcription,
-    file_name="transcription.txt",
-    mime="text/plain"
-)
+    # Download button
+    st.download_button(
+        label="Download as .txt",
+        data=transcription,
+        file_name="transcription.txt",
+        mime="text/plain"
+    )
