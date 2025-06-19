@@ -143,7 +143,7 @@ def highlight_individualising_language(text):
         "your choices count", "live sustainably", "choose the planet",
         "go green", "act now", "take climate action", "join the movement"
 
-            greenwashing_individualising_phrases = [
+           
         # Individualising / blame-shifting phrases
         "you should", "your responsibility", "you must", "you have to", "you need to", "it's up to you",
         "do your part", "play your role", "take responsibility", "personal duty", "individual choice",
