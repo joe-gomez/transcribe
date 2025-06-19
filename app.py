@@ -181,6 +181,19 @@ if uploaded_file is not None and st.button("Transcribe"):
     </div>
     """, unsafe_allow_html=True)
 
+# Build color key HTML for categories
+color_key_html = '<div style="margin-bottom: 1em; font-family: monospace;">'
+color_key_html += '<strong>Color Key:</strong><br>'
+for cat, data in phrase_categories.items():
+    color = data["color"]
+    # Capitalize category name with spaces (e.g., "individualising" → "Individualising")
+    label = cat.replace('_', ' ').title()
+    color_key_html += f'<span style="background-color: {color}; padding: 0.2em 0.6em; margin-right: 1em; border-radius: 4px;">{label}</span>'
+color_key_html += '</div>'
+
+# Display color key before highlighted transcript
+st.markdown(color_key_html, unsafe_allow_html=True)
+    
     # Highlighted transcript display with multi-category colors
     st.markdown("### 🖍️ Transcription with Categorized Highlights:")
     st.markdown(f"""
