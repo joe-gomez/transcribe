@@ -26,34 +26,48 @@ phrase_categories = {
     "individualising": {
         "color": "#fffa65",  # yellow
         "phrases": [
-            # ... (same as before, omitted for brevity)
-            "you", "you're", "your", "yours", "yourself", "yourselves", "you should", "you must", "you have to", "you need to", "you can",
-            "you could", "you might", "you may", "you ought to", "you'd better", "you are expected to", "you're expected to", "you are required to",
-            "you're required to", # ... list continues ...
+            "you", "you're", "your", "yours", "yourself", "yourselves",
+            "you should", "you must", "you have to", "you need to", "you can",
+            "you could", "you might", "you may", "you ought to", "you'd better",
+            "you are expected to", "you're expected to", "you are required to", "you're required to",
+            "your responsibility", "your duty", "your job", "it's on you",
+            "each of you", "every one of you", "everybody should", "everyone must",
+            "do your part", "do your bit", "do your share", "make a difference yourself",
+            "one person at a time", "it starts with you", "take action", "take responsibility",
+            "individual action", "individual responsibility", "personal action", "personal responsibility"
         ],
     },
     "collective_we": {
         "color": "#8ad6ff",  # light blue
         "phrases": [
-            # ... (same as before, omitted for brevity)
-            "we're messing up", "we're ruining", "we're destroying", "we're failing", "we need to change", "we have to act", "we should try", "we must",
-            # ... list continues ...
+            "we", "we're", "we are", "our", "ours", "ourselves",
+            "we should", "we must", "we have to", "we need to", "we can", "we could", "we might", "we may",
+            "we ought to", "we'd better", "we are expected to", "we're expected to", "we are required to", "we're required to",
+            "we all", "all of us", "let's", "let us", "together we", "as a community", "as a society", "as a nation", "as a planet",
+            "we're messing up", "we're ruining", "we're destroying", "we're failing", "we need to change", "we have to act", "we should try",
+            "we think it's time", "we can do better", "we need to do better", "we need to act", "we must act", "we must try", "we must change",
+            "we're looking after", "we're taking care of", "we can fix", "we're fixing up", "fixing up the planet", "fixing up real good"
         ],
     },
     "greenwashing": {
         "color": "#b0ffb0",  # light green
         "phrases": [
-            # ... (same as before, omitted for brevity)
-            "natural", "nature's", "healthy", "healthier planet", "sustainable", "eco-friendly", "green", "clean", "fresh", "pure", "safe", "responsible",
-            # ... list continues ...
+            "natural", "nature's", "nature", "healthy", "healthier planet", "sustainable", "eco-friendly", "eco friendly",
+            "green", "clean", "fresh", "pure", "safe", "responsible", "better for the planet", "planet-friendly", "environmentally friendly",
+            "kind to the planet", "planet safe", "planet care", "earth safe", "earth care", "earth friendly", "tread lightly",
+            "gentle on the earth", "gentle on the planet", "planet positive", "earth positive", "climate positive", "climate neutral",
+            "net zero", "carbon neutral", "carbon negative", "offset", "offsetting", "carbon offset", "climate compensated",
+            "innocent", "little drinks", "big dreams", "big dreams for a healthier planet", "innocent little drinks with big dreams"
         ],
     },
     "moral_metaphors": {
         "color": "#ffb0b0",  # light red/pink
         "phrases": [
-            # ... (same as before, omitted for brevity)
-            "no planet B", "mother nature", "mother earth", "earth is hurting", "planet is crying", "save our home", "look after nature",
-            # ... list continues ...
+            "no planet b", "there is no planet b", "mother nature", "mother earth", "earth is hurting", "planet is hurting",
+            "earth is crying", "planet is crying", "save our home", "save the earth", "save the planet", "look after nature",
+            "look after the earth", "look after the planet", "planet b", "earth is our home", "our only home", "protect our home",
+            "the planet is our home", "if we look after nature she'll be looking after me", "nature will look after us",
+            "impending doom", "doom and gloom", "dire consequences", "the end is near"
         ],
     }
 }
