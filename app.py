@@ -5,7 +5,7 @@ from highlight import highlight_phrases_by_category
 from phrases.phrase_categories import phrase_categories
 
 st.set_page_config(page_title="Audio/Video Transcriber", layout="centered")
-st.title("Whisper Transcription & Phrase Highlighter")
+st.title("Video Transcription & Greenwashing Highlighter")
 
 uploaded_file = st.file_uploader(
     "Upload an audio or video file",
