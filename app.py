@@ -1,8 +1,7 @@
 import streamlit as st
-import re
 import html
 from transcribe import transcribe
-from highlight import highlight_phrases_by_category  # Uses phrase_categories from phrases/phrase_categories.py
+from highlight import highlight_phrases_by_category
 from phrases.phrase_categories import phrase_categories
 
 st.set_page_config(page_title="Audio/Video Transcriber", layout="centered")
@@ -30,7 +29,7 @@ fuzzy_threshold = st.slider(
     help="Lower values will match phrases more loosely; higher values require closer matches."
 )
 
-# Build color key HTML for categories (always shown)
+# --- Show color key ---
 color_key_html = '<div style="margin-bottom: 1em; font-family: monospace;">'
 color_key_html += '<strong>Color Key:</strong><br>'
 for cat, data in phrase_categories.items():
@@ -40,12 +39,43 @@ for cat, data in phrase_categories.items():
 color_key_html += '</div>'
 st.markdown(color_key_html, unsafe_allow_html=True)
 
+# --- Caching transcript ---
+@st.cache_data(show_spinner="Transcribing... this may take a few seconds depending on the file size")
+def get_transcription(file_bytes, language, file_name):
+    import io
+    file_obj = io.BytesIO(file_bytes)
+    file_obj.name = file_name
+    return transcribe(file_obj, language)
+
 if uploaded_file is not None:
+    # Read file ONCE and store bytes and name
+    file_bytes = uploaded_file.read()
+    file_name = uploaded_file.name
+
+    # Only re-transcribe if file or language changes
     if st.button("Transcribe"):
-        st.audio(uploaded_file, format="audio/mp3")
         with st.spinner("Transcribing... this may take a few seconds depending on the file size"):
-            transcription = transcribe(uploaded_file, selected_language)
+            transcription = get_transcription(file_bytes, selected_language, file_name)
+            st.session_state["transcription"] = transcription
+            st.session_state["transcription_file_hash"] = hash(file_bytes)
+            st.session_state["transcription_language"] = selected_language
+            st.session_state["transcription_file_name"] = file_name
         st.success("Transcription complete!")
+
+    # Display transcript if it exists in session (for re-highlighting)
+    elif (
+        "transcription" in st.session_state and
+        st.session_state.get("transcription_file_hash") == hash(file_bytes) and
+        st.session_state.get("transcription_language") == selected_language and
+        st.session_state.get("transcription_file_name") == file_name
+    ):
+        transcription = st.session_state["transcription"]
+        st.success("Transcription loaded from cache!")
+    else:
+        transcription = None
+
+    if transcription:
+        st.audio(file_bytes, format="audio/mp3")
 
         # Original transcript display
         st.markdown("### 📝 Transcription:")
