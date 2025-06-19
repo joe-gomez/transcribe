@@ -72,12 +72,11 @@ if uploaded_file is not None:
     # Only re-transcribe if file or language changes
     if st.button("Transcribe"):
         try:
-            with st.spinner("Transcribing... this may take a few seconds depending on the file size"):
-                transcription = get_transcription(file_bytes, whisper_language, file_name)
-                st.session_state["transcription"] = transcription
-                st.session_state["transcription_file_hash"] = hash(file_bytes)
-                st.session_state["transcription_language"] = whisper_language
-                st.session_state["transcription_file_name"] = file_name
+            transcription = get_transcription(file_bytes, whisper_language, file_name)
+            st.session_state["transcription"] = transcription
+            st.session_state["transcription_file_hash"] = hash(file_bytes)
+            st.session_state["transcription_language"] = whisper_language
+            st.session_state["transcription_file_name"] = file_name
             st.success("Transcription complete!")
         except Exception as e:
             st.error(f"Transcription failed: {e}")
