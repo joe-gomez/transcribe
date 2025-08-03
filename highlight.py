@@ -1,61 +1,69 @@
 # highlight.py
 import re
 
-def highlight_greenwashing_strategies(text, sensitivity=2, detect_collective=True, 
-                                    detect_individual=True, detect_metaphors=True, 
-                                    detect_buzzwords=True):
+def highlight_greenwashing_strategies(
+    text, sensitivity=2, detect_collective=True, 
+    detect_individual=True, detect_metaphors=True, 
+    detect_buzzwords=True
+):
     """
     Highlight greenwashing strategies in text based on thematic analysis patterns.
-    
-    Args:
-        text: Input text to analyze
-        sensitivity: 1=strict, 2=moderate, 3=broad
-        detect_*: Boolean flags for each strategy type
-    
-    Returns:
-        tuple: (highlighted_text, statistics_dict)
+    Returns (highlighted_text, statistics_dict)
     """
-    
-    # Define patterns based on sensitivity level
-    patterns = {
-        'collective': get_collective_patterns(sensitivity),
-        'individual': get_individual_patterns(sensitivity),
-        'metaphors': get_metaphor_patterns(sensitivity),
-        'buzzwords': get_buzzword_patterns(sensitivity)
-    }
-    
-    # Initialize statistics
-    stats = {
-        'collective': 0,
-        'individual': 0,
-        'metaphors': 0,
-        'buzzwords': 0
-    }
-    
-    highlighted_text = text
-    
-    # Apply highlighting for each strategy if enabled
+    # Collect patterns and classes
+    pattern_classes = []
+
     if detect_collective:
-        highlighted_text, stats['collective'] = apply_highlighting(
-            highlighted_text, patterns['collective'], 'collective-we'
-        )
-    
+        for pat in get_collective_patterns(sensitivity):
+            pattern_classes.append((pat, 'collective-we'))
     if detect_individual:
-        highlighted_text, stats['individual'] = apply_highlighting(
-            highlighted_text, patterns['individual'], 'individualising'
-        )
-    
+        for pat in get_individual_patterns(sensitivity):
+            pattern_classes.append((pat, 'individualising'))
     if detect_metaphors:
-        highlighted_text, stats['metaphors'] = apply_highlighting(
-            highlighted_text, patterns['metaphors'], 'moral-metaphors'
-        )
-    
+        for pat in get_metaphor_patterns(sensitivity):
+            pattern_classes.append((pat, 'moral-metaphors'))
     if detect_buzzwords:
-        highlighted_text, stats['buzzwords'] = apply_highlighting(
-            highlighted_text, patterns['buzzwords'], 'green-buzzwords'
-        )
-    
-    return highlighted_text, stats
+        for pat in get_buzzword_patterns(sensitivity):
+            pattern_classes.append((pat, 'green-buzzwords'))
+
+    # Find all non-overlapping matches
+    matches = []
+    for pat, css_class in pattern_classes:
+        for m in re.finditer(pat, text, re.IGNORECASE):
+            matches.append({'start': m.start(), 'end': m.end(), 'css': css_class, 'text': m.group(), 'pattern': pat})
+
+    # Remove overlaps: keep earliest match, longest span
+    matches.sort(key=lambda x: (x['start'], -x['end']))
+    non_overlapping = []
+    last_end = 0
+    for m in matches:
+        if m['start'] >= last_end:
+            non_overlapping.append(m)
+            last_end = m['end']
+
+    # Build stats
+    stats = {'collective': 0, 'individual': 0, 'metaphors': 0, 'buzzwords': 0}
+    for m in non_overlapping:
+        if m['css'] == 'collective-we':
+            stats['collective'] += 1
+        elif m['css'] == 'individualising':
+            stats['individual'] += 1
+        elif m['css'] == 'moral-metaphors':
+            stats['metaphors'] += 1
+        elif m['css'] == 'green-buzzwords':
+            stats['buzzwords'] += 1
+
+    # Rebuild text from matches (process from end to start)
+    highlighted = text
+    offset = 0
+    for m in sorted(non_overlapping, key=lambda x: x['start']):
+        start = m['start'] + offset
+        end = m['end'] + offset
+        tag = f'<span class="{m["css"]}">{highlighted[start:end]}</span>'
+        highlighted = highlighted[:start] + tag + highlighted[end:]
+        offset += len(tag) - (end - start)
+
+    return highlighted, stats
 
 def get_collective_patterns(sensitivity):
     """Get collective 'we' patterns based on sensitivity level."""
